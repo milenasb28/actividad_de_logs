@@ -1,0 +1,45 @@
+version: '3.7'
+services:
+  app:
+    container_name: myapp
+    build: ./
+    links:
+      - "mysql_db_container"
+    depends_on:
+      - mysql_db_container
+    networks:
+      - app-tier
+
+  mysql_db_container:
+    container_name: mydb
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: api
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_db_data_container:/var/lib/mysql
+    networks:
+      - app-tier
+
+  adminer_container:
+    image: adminer:latest
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql_db_container
+    ports:
+      - 8080:8080
+    links:
+      - "mysql_db_container"
+    depends_on:
+      - mysql_db_container
+    networks:
+      - app-tier
+
+networks:
+  app-tier:
+    driver: bridge
+
+volumes:
+  mysql_db_data_container:
